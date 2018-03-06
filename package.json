@@ -1,0 +1,19 @@
+{
+  "name": "tk-promise",
+  "version": "0.0.1",
+  "main": "module.js",
+  "private": true,
+  "plugin": {
+    "provides": [
+      "trustkey_first_perfect"
+    ],
+    "consumes": [
+      "core",
+      "promise",
+      "rng"
+    ]
+  },
+  "dependencies": {
+    "jsonschema": "^1.2.2"
+  }
+}
