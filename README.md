@@ -13,6 +13,7 @@ Request:
   "b64_buffers": true
 }, (res) => console.log(res))
 ```
+Positive `b64_buffers` property tells promise module to encode node js Buffers with base64
 
 Response:
 ```json
@@ -44,15 +45,15 @@ services.promise.resolvePromise({
 ```
 
 Response:
-```json
+```javascript
 { "success": true,
-  "result": '6OpGUO1CvnZH0eoYlbdfeGdNfQETlIk4CJ5vLvzBFrj1v53SQWKpvbcHjOCJtuKr6Pjckcj4rYKpJd1acPIeRw==',
+  "result": "6OpGUO1CvnZH0eoYlbdfeGdNfQETlIk4CJ5vLvzBFrj1v53SQWKpvbcHjOCJtuKr6Pjckcj4rYKpJd1acPIeRw==",
   "info": { "trustkey_ts": 1520364270 /*perfect trustkey used to generate seed*/ } }
 ```
 
 Error response example(error codes listed in `errorCodes.js`):
 ```json
-{ "success": false, "error_code": 6, "error": 'trustkey not found' }
+{ "success": false, "error_code": 6, "error": "trustkey not found" }
 ```
 
 [0]: https://github.com/TrustKey/promise
