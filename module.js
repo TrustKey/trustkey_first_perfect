@@ -39,14 +39,8 @@ const resolvePromiseRequestSchema = {
 
 const errorCodes = require('./errorCodes');
 
-class TrustkeyFirstPerfectPromiseService {
-    constructor(imports) {
-        this.core = imports.core;
-        this.rng = imports.rng;
-        this.name = "trustkey_first_perfect";
-    }
-
-    createPromise(request, callback) {
+module.exports = function setup(options, imports, register) {
+    const trustkey_first_perfect_constructor = (request, resolve, reject) => {
         //Recheck promise params and generate seed
 
         const vRes = v.validate(request, createPromiseRequestSchema);
@@ -54,11 +48,10 @@ class TrustkeyFirstPerfectPromiseService {
         let response = {};
 
         const respondWithError = (ec) => {
-            response.success = false;
             response.error_code = ec;
             response.error = errorCodes[ec];
 
-            callback(response);
+            reject(response);
         };
 
         if (vRes.errors.length) {
@@ -66,7 +59,7 @@ class TrustkeyFirstPerfectPromiseService {
             return respondWithError(1);
         }
 
-        let supervisor = this.core.getSupervisorByServerId(request.server_id);
+        let supervisor = imports.core.getSupervisorByServerId(request.server_id);
 
         if (!supervisor.success || !supervisor.result.connected)
             return respondWithError(2);
@@ -77,27 +70,24 @@ class TrustkeyFirstPerfectPromiseService {
             return respondWithError(3);
 
         request.server_round_time = supervisor.roundTime;
-        request.seed = this.rng.generate(request.n_bytes);
+        request.seed = imports.rng.generate(request.n_bytes);
 
         delete request.n_bytes;
+        request._f = "trustkey_first_perfect";
 
-        response.success = true;
-        response.result = request;
+        resolve(request);
+    };
 
-        callback(response);
-    }
-
-    resolvePromise(request, callback) {
+    const trustkey_first_perfect = (request, resolve, reject) => {
         const vRes = v.validate(request, resolvePromiseRequestSchema);
 
         let response = {};
 
         const respondWithError = (ec) => {
-            response.success = false;
             response.error_code = ec;
             response.error = errorCodes[ec];
 
-            callback(response);
+            reject(response);
         };
 
         if (vRes.errors.length) {
@@ -113,7 +103,7 @@ class TrustkeyFirstPerfectPromiseService {
         if (!Buffer.isBuffer(seedBytes))
             return respondWithError(7);
 
-        let supervisor = this.core.getSupervisorByServerId(request.server_id);
+        let supervisor = imports.core.getSupervisorByServerId(request.server_id);
 
         if (!supervisor.success)
             return respondWithError(2);
@@ -148,13 +138,14 @@ class TrustkeyFirstPerfectPromiseService {
                     seedBytes[i] = seedBytes[i] ^ trustkeyDigest[i % trustkeyDigest.length];
                 }
 
-                callback({
+                resolve(seedBytes);
+                /*{
                     success: true,
                     result: seedBytes,
                     info: {
                         trustkey_ts: targetTkTs
                     }
-                });
+                }*/
             };
 
             if (targetTkTs === request.trustkey_ts) //Just respond if target trustkey was perfect
@@ -187,18 +178,26 @@ class TrustkeyFirstPerfectPromiseService {
                     ++i;
                 }
 
+                if(targetTrustkey.ts !== expectedTs)
+                    return respondWithError(7);
+
                 calculateAndRespond();
             });
         });
+    };
 
-    }
-}
+    imports.promise.postAlgorithm({
+        name: "trustkey_first_perfect_constructor",
+        resolve: trustkey_first_perfect_constructor
+    });
 
-module.exports = function setup(options, imports, register) {
-    const alg = new TrustkeyFirstPerfectPromiseService(imports);
+    imports.promise.postAlgorithm({
+        name: "trustkey_first_perfect",
+        resolve: trustkey_first_perfect
+    });
 
-    imports.promise.postAlgorithm(alg);
     register(null, {
-        trustkey_first_perfect: alg
+        trustkey_first_perfect: trustkey_first_perfect,
+        trustkey_first_perfect_constructor: trustkey_first_perfect_constructor
     });
 };

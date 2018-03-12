@@ -1,11 +1,12 @@
 {
-  "name": "tk-promise",
-  "version": "0.0.1",
+  "name": "@trustkey/trustkey_first_perfect",
+  "version": "0.1.0",
   "main": "module.js",
   "private": true,
   "plugin": {
     "provides": [
-      "trustkey_first_perfect"
+      "trustkey_first_perfect",
+      "trustkey_first_perfect_constructor"
     ],
     "consumes": [
       "core",
